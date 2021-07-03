@@ -18,6 +18,11 @@ int row1;
 int row2;
 int row3;
 
+int targ0;
+int targ1;
+int targ2;
+int targ3;
+
 void setup() {
   Serial.begin(9600);
   // initialize digital pin 13 as an output.
@@ -32,14 +37,26 @@ void setup() {
   red = strip.Color(64, 0, 0);
   off = strip.Color(0,0,0);
 
-  row0 = row1 = row2 = row3 = 50;
+  row0 = row1 = row2 = row3 = 0;
+  targ0 = targ1 = targ2 = targ3 = 50;
 }
 
 void loop() {
-  row0 = nextVal(row0);
-  row1 = nextVal(row1);
-  row2 = nextVal(row2);
-  row3 = nextVal(row3);
+  row0 = nextVal(row0, targ0);
+  if (random(0, 100) > 90)
+    targ0 = random(0, 100);
+    
+  row1 = nextVal(row1, targ1);
+  if (random(0, 100) > 90)
+    targ1 = random(0, 100);
+      
+  row2 = nextVal(row2, targ2);
+  if (random(0, 100) > 90)
+    targ2 = random(0, 100);
+    
+  row3 = nextVal(row3, targ3);
+  if (random(0, 100) > 90)
+    targ3 = random(0, 100);
   
   setRow( 0, row0);
   setRow( 8, row1);
@@ -47,8 +64,12 @@ void loop() {
   setRow(24, row3);
 }
 
-int nextVal(int val) {
- return min(max(val + random(-5, 6), 0), 100); 
+int nextVal(int val, int targ) {
+  int change = random(0, 6);
+  if (targ > val)
+    return (val + change);
+  else
+    return (val - change);
 }
 
 void setRow(int start, int val) {
