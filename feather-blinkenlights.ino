@@ -1,17 +1,14 @@
 #include <Adafruit_NeoPixel.h>
+#include <Wire.h>
 
-// Which pin on the Arduino is connected to the NeoPixels?
 #define LED_PIN    6        // Pin 6 on 32u4 Feathers
-
-// How many NeoPixels are attached to the Arduino?
 #define LED_COUNT 32        // 8x4 grid on Neopixel Featherwing
-
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-uint32_t green;
-uint32_t yellow;
-uint32_t red;
-uint32_t off;
+uint32_t green = strip.Color(0, 64, 0);
+uint32_t yellow = strip.Color(64, 64, 0);
+uint32_t red = strip.Color(64, 0, 0);
+uint32_t off = strip.Color(0,0,0);
 
 int row0;
 int row1;
@@ -24,18 +21,12 @@ int targ2;
 int targ3;
 
 void setup() {
-  Serial.begin(9600);
-  // initialize digital pin 13 as an output.
-  pinMode(13, OUTPUT);
-
+  Wire.begin(0x14);
+  Wire.onReceive(DataReceive);
+  
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
   strip.setBrightness(3);
-
-  green = strip.Color(0, 64, 0);
-  yellow = strip.Color(64, 64, 0);
-  red = strip.Color(64, 0, 0);
-  off = strip.Color(0,0,0);
 
   row0 = row1 = row2 = row3 = 0;
   targ0 = targ1 = targ2 = targ3 = 50;
@@ -43,20 +34,9 @@ void setup() {
 
 void loop() {
   row0 = nextVal(row0, targ0);
-  if (random(0, 100) > 90)
-    targ0 = random(0, 100);
-    
-  row1 = nextVal(row1, targ1);
-  if (random(0, 100) > 90)
-    targ1 = random(0, 100);
-      
-  row2 = nextVal(row2, targ2);
-  if (random(0, 100) > 90)
-    targ2 = random(0, 100);
-    
+  row1 = nextVal(row1, targ1);     
+  row2 = nextVal(row2, targ2);    
   row3 = nextVal(row3, targ3);
-  if (random(0, 100) > 90)
-    targ3 = random(0, 100);
   
   setRow( 0, row0);
   setRow( 8, row1);
@@ -87,4 +67,35 @@ void setRow(int start, int val) {
     strip.fill(off, (start + val), (8 - val));
     
   strip.show();
+}
+
+void DataReceive(int numBytes)
+{
+  int target;
+  int value;
+  while(Wire.available()) 
+  { 
+    target = Wire.read();
+    value = Wire.read();
+    switch(target){
+      case 0:
+        targ0 = value;
+        break;
+      case 1:
+        targ1 = value;
+        break;
+      case 2:
+        targ2 = value;
+        break;
+      case 3:
+        targ3 = value;
+        break;
+      default:
+        targ0 = random(0, 100);
+        targ1 = random(0, 100);
+        targ2 = random(0, 100);
+        targ3 = random(0, 100);
+        break;
+    }
+  }
 }
